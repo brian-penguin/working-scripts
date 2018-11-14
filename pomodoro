@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+require "optparse"
+
+DEFAULT_TIMER = 3600.freeze
+DEFAULT_BREAK = 300.freeze
+LAST_POM_MESSAGE = "THANK YOU FOR POMING!".freeze
+
+DEFAULT_OPTIONS = {
+  time: 25,
+  break: 5,
+  poms: 3
+}
+
+options = DEFAULT_OPTIONS
+
+def break_message(pom_count, break_time)
+  "BREAK STARTING: (#{break_time} Minutes) POMS REMAINING: #{pom_count} "
+end
+
+def send_notification(notification_message)
+  `notify-send "#{notification_message}"`
+end
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: pomodoro [options]"
+
+  opts.on("-h", "--help", "HELP!") do |h|
+    options[:help] = h
+  end
+
+  opts.on("-t", "--time [NUMBER_OF_MINUTES]", Integer, "Set the pomodoro time (minutes)") do |pom_mins|
+    options[:time] = pom_mins
+  end
+
+  opts.on("-b", "--break [NUMBER_OF_MINUTES]", Integer, "Set the pomodoro break time (minutes)") do |break_mins|
+    options[:break] = break_mins
+  end
+
+  opts.on("-c", "--count", Integer, "Number of pomodoro interations!") do |n|
+    options[:number_of_poms] = n
+  end
+
+end.parse!
+
+if options[:help]
+  puts "Set a timer for when to take a break in minutes using -t in minutes"
+  puts "Set a break timer for how long your break should be using -b in minutes"
+  puts "Set number of poms with -n minutes"
+  exit(0)
+end
+
+pom_count = options[:poms]
+break_time = options[:break] * 60
+pom_time = options[:time] * 60
+
+send_notification("Starting #{pom_count} poms")
+
+pom_count.times do |pom_number|
+  sleep(pom_time)
+  poms_remaining = pom_count - pom_number
+  send_notification(break_message(poms_remaining, break_time))
+  sleep(break_time)
+end
+
+puts LAST_POM_MESSAGE
